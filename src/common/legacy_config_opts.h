@@ -1500,6 +1500,7 @@ OPTION(rgw_run_sync_thread, OPT_BOOL) // whether radosgw (not radosgw-admin) spa
 OPTION(rgw_sync_lease_period, OPT_INT) // time in second for lease that rgw takes on a specific log (or log shard)
 OPTION(rgw_sync_log_trim_interval, OPT_INT) // time in seconds between attempts to trim sync logs
 
+OPTION(rgw_sync_data_spawn_window, OPT_INT) // max number of individual objects to sync per data log shard
 OPTION(rgw_sync_data_inject_err_probability, OPT_DOUBLE) // range [0, 1]
 OPTION(rgw_sync_meta_inject_err_probability, OPT_DOUBLE) // range [0, 1]
 OPTION(rgw_sync_trace_history_size, OPT_INT) // max number of complete sync trace entries to keep

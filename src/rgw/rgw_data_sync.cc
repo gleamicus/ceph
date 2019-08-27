@@ -1113,7 +1113,6 @@ public:
   }
 };
 
-#define BUCKET_SHARD_SYNC_SPAWN_WINDOW 20
 #define DATA_SYNC_MAX_ERR_ENTRIES 10
 
 class RGWDataSyncShardCR : public RGWCoroutine {
@@ -1151,7 +1150,7 @@ class RGWDataSyncShardCR : public RGWCoroutine {
 
   int total_entries;
 
-  int spawn_window;
+  int spawn_window = sync_env->cct->_conf->rgw_sync_data_spawn_window;
 
   bool *reset_backoff;
 
@@ -1179,15 +1178,14 @@ class RGWDataSyncShardCR : public RGWCoroutine {
 public:
   RGWDataSyncShardCR(RGWDataSyncEnv *_sync_env,
                      rgw_pool& _pool,
-		     uint32_t _shard_id, const rgw_data_sync_marker& _marker,
+                     uint32_t _shard_id, const rgw_data_sync_marker& _marker,
                      RGWSyncTraceNodeRef& _tn,
                      bool *_reset_backoff) : RGWCoroutine(_sync_env->cct),
                                                       sync_env(_sync_env),
-						      pool(_pool),
-						      shard_id(_shard_id),
-						      sync_marker(_marker),
-                                                      marker_tracker(NULL), truncated(false),
-                                                      total_entries(0), spawn_window(BUCKET_SHARD_SYNC_SPAWN_WINDOW), reset_backoff(NULL),
+                                                      pool(_pool),
+                                                      shard_id(_shard_id),
+                                                      sync_marker(_marker),
+                                                      marker_tracker(NULL), truncated(false), total_entries(0), reset_backoff(NULL),
                                                       lease_cr(nullptr), lease_stack(nullptr), error_repo(nullptr), max_error_entries(DATA_SYNC_MAX_ERR_ENTRIES),
                                                       retry_backoff_secs(RETRY_BACKOFF_SECS_DEFAULT), tn(_tn) {
     set_description() << "data sync shard source_zone=" << sync_env->source_zone << " shard_id=" << shard_id;
@@ -2843,8 +2841,6 @@ done:
   }
 };
 
-#define BUCKET_SYNC_SPAWN_WINDOW 20
-
 class RGWBucketShardFullSyncCR : public RGWCoroutine {
   RGWDataSyncEnv *sync_env;
   const rgw_bucket_shard& bs;
@@ -2932,7 +2928,8 @@ int RGWBucketShardFullSyncCR::operate()
                                  entry->key, &marker_tracker, zones_trace, tn),
                       false);
         }
-        while (num_spawned() > BUCKET_SYNC_SPAWN_WINDOW) {
+        while ((int)num_spawned() > sync_env->cct->_conf->rgw_sync_data_spawn_window) {
+          set_status() << "num_spawned() > spawn_window";
           yield wait_for_child();
           bool again = true;
           while (again) {
@@ -3213,7 +3210,7 @@ int RGWBucketShardIncrementalSyncCR::operate()
                   false);
           }
         // }
-        while (num_spawned() > BUCKET_SYNC_SPAWN_WINDOW) {
+        while ((int)num_spawned() > sync_env->cct->_conf->rgw_sync_data_spawn_window) {
           set_status() << "num_spawned() > spawn_window";
           yield wait_for_child();
           bool again = true;

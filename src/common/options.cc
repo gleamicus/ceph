@@ -6764,6 +6764,10 @@ std::vector<Option> get_rgw_options() {
     .add_see_also("rgw_sync_log_trim_max_buckets")
     .add_see_also("rgw_sync_log_trim_min_cold_buckets"),
 
+    Option("rgw_sync_data_spawn_window", Option::TYPE_INT, Option::LEVEL_ADVANCED)
+    .set_default(20)
+    .set_description("Object syncs to spawn per data log shard"),
+
     Option("rgw_sync_data_inject_err_probability", Option::TYPE_FLOAT, Option::LEVEL_DEV)
     .set_default(0)
     .set_description(""),
